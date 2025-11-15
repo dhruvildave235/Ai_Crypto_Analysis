@@ -9,7 +9,7 @@ class DataPreprocessor:
     
     def handle_missing_values(self, data):
         """Handle missing values in the dataset"""
-        # Forward fill then backward fill
+         
         data_clean = data.ffill().bfill()
         return data_clean
     
@@ -39,11 +39,11 @@ class DataPreprocessor:
         """Calculate technical indicators for time series analysis"""
         df = data.copy()
         
-        # Moving averages
+       
         df['MA_7'] = df['Close'].rolling(window=7).mean()
         df['MA_30'] = df['Close'].rolling(window=30).mean()
         
-        # RSI
+       
         df['PriceChange'] = df['Close'].diff()
         df['Gain'] = df['PriceChange'].apply(lambda x: x if x > 0 else 0)
         df['Loss'] = df['PriceChange'].apply(lambda x: -x if x < 0 else 0)
@@ -54,10 +54,10 @@ class DataPreprocessor:
         rs = avg_gain / avg_loss
         df['RSI'] = 100 - (100 / (1 + rs))
         
-        # Volatility
+       
         df['Volatility'] = df['Close'].rolling(window=20).std()
         
-        # Daily returns
+         
         df['Daily_Return'] = df['Close'].pct_change()
         
         return df
@@ -68,14 +68,14 @@ class DataPreprocessor:
         
         close_prices = data[['Close']].values
         
-        # Scale the data
+      
         self.scalers['LSTM'] = MinMaxScaler(feature_range=(0, 1))
         scaled_data = self.scalers['LSTM'].fit_transform(close_prices)
         
-        # Create sequences
         X, y = [], []
         for i in range(lookback, len(scaled_data)):
             X.append(scaled_data[i-lookback:i, 0])
             y.append(scaled_data[i, 0])
         
+
         return np.array(X), np.array(y)
