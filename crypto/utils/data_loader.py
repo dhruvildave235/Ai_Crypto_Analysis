@@ -26,7 +26,7 @@ class CryptoDataLoader:
     
     def get_crypto_data(self, symbol, period='1y'):
         """Fetch cryptocurrency data with caching to data folder"""
-        # Check if we have cached data
+        
         cached_data = self._load_cached_data(symbol, period)
         if cached_data is not None:
             st.success(f"✅ Loaded cached data for {symbol} ({len(cached_data)} records)")
@@ -35,18 +35,18 @@ class CryptoDataLoader:
         try:
             st.info(f"📡 Fetching fresh data for {symbol}...")
             
-            # Try CoinGecko API first
+            
             data = self._get_coingecko_data(symbol, period)
             if data is not None and not data.empty:
-                # Cache the data
+               
                 self._save_data_to_cache(data, symbol, period)
                 st.success(f"✅ Real data loaded for {symbol} from CoinGecko")
                 return data
             
-            # If CoinGecko fails, use sample data
+        
             st.warning(f"⚠️ Using sample data for {symbol} (API limitations)")
             sample_data = self.create_sample_data(symbol, period)
-            # Cache the sample data
+            
             self._save_data_to_cache(sample_data, symbol, period)
             return sample_data
             
@@ -61,9 +61,9 @@ class CryptoDataLoader:
         """Load data from cache if it exists and is recent"""
         cache_file = os.path.join(self.data_dir, f"{symbol}_{period}.csv")
         if os.path.exists(cache_file):
-            # Check if cache is recent (less than 1 hour old)
+         
             file_time = os.path.getmtime(cache_file)
-            if time.time() - file_time < 3600:  # 1 hour cache
+            if time.time() - file_time < 3600: 
                 try:
                     data = pd.read_csv(cache_file)
                     data['Date'] = pd.to_datetime(data['Date'])
@@ -83,7 +83,7 @@ class CryptoDataLoader:
     def _get_coingecko_data(self, symbol, period):
         """Get data from CoinGecko API"""
         try:
-            # Map symbols to CoinGecko IDs
+            
             coin_ids = {
                 'BTC': 'bitcoin',
                 'ETH': 'ethereum',
@@ -100,7 +100,7 @@ class CryptoDataLoader:
             if not coin_id:
                 return None
             
-            # Map period to days
+           
             days_map = {
                 '1mo': 30,
                 '3mo': 90,
@@ -121,7 +121,7 @@ class CryptoDataLoader:
             if response.status_code == 200:
                 data = response.json()
                 
-                # Extract prices and create DataFrame
+             
                 prices = data['prices']
                 df = pd.DataFrame(prices, columns=['timestamp', 'price'])
                 df['Date'] = pd.to_datetime(df['timestamp'], unit='ms')
@@ -132,7 +132,7 @@ class CryptoDataLoader:
                 df['Volume'] = np.random.uniform(1000000, 50000000, len(df))
                 df['Symbol'] = symbol
                 
-                # Keep only necessary columns and sort
+              
                 df = df[['Date', 'Open', 'High', 'Low', 'Close', 'Volume', 'Symbol']]
                 df = df.sort_values('Date').reset_index(drop=True)
                 
@@ -146,7 +146,7 @@ class CryptoDataLoader:
     def create_sample_data(self, symbol, period='1y'):
         """Create realistic sample cryptocurrency data"""
         try:
-            # Determine number of days based on period
+           
             days_map = {
                 '1mo': 30,
                 '3mo': 90,
@@ -160,11 +160,10 @@ class CryptoDataLoader:
             start_date = end_date - timedelta(days=days)
             date_range = pd.date_range(start=start_date, end=end_date, freq='D')
             
-            # Set seed for reproducibility
+          
             np.random.seed(42)
             random.seed(42)
             
-            # Realistic base prices and volatility for each cryptocurrency
             crypto_profiles = {
                 'BTC': {'base': 45000, 'volatility': 0.03},
                 'ETH': {'base': 3000, 'volatility': 0.04},
@@ -181,25 +180,24 @@ class CryptoDataLoader:
             base_price = profile['base']
             volatility = profile['volatility']
             
-            # Generate realistic price series with trends and volatility clusters
+            
             prices = []
             current_price = base_price
             trend_direction = np.random.choice([-1, 1])
             trend_strength = np.random.uniform(0.001, 0.003)
             
             for i in range(len(date_range)):
-                # Random walk with trend and volatility
+              
                 change = np.random.normal(trend_direction * trend_strength, volatility)
                 current_price = max(0.01, current_price * (1 + change))
                 
-                # Occasionally change trend direction
                 if i % 90 == 0 and np.random.random() < 0.3:
                     trend_direction *= -1
                     trend_strength = np.random.uniform(0.001, 0.003)
                 
                 prices.append(current_price)
             
-            # Create OHLC data
+
             open_prices = [p * (1 + np.random.normal(0, 0.005)) for p in prices]
             high_prices = [max(o, p) * (1 + abs(np.random.normal(0, 0.01))) for o, p in zip(open_prices, prices)]
             low_prices = [min(o, p) * (1 - abs(np.random.normal(0, 0.01))) for o, p in zip(open_prices, prices)]
@@ -220,7 +218,7 @@ class CryptoDataLoader:
             
         except Exception as e:
             st.error(f"Error creating sample data: {str(e)}")
-            # Minimal fallback
+          
             return pd.DataFrame({
                 'Date': [datetime.now() - timedelta(days=1), datetime.now()],
                 'Open': [100, 105],
@@ -238,4 +236,5 @@ class CryptoDataLoader:
             for file in os.listdir(self.data_dir):
                 if file.endswith('.csv'):
                     datasets.append(file)
+
         return datasets
