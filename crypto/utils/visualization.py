@@ -47,7 +47,7 @@ class Visualizer:
             horizontal_spacing=0.1
         )
         
-        # Moving averages
+      
         fig.add_trace(
             go.Scatter(x=data['Date'], y=data['Close'], name='Close Price', line=dict(color='blue')),
             row=1, col=1
@@ -63,7 +63,7 @@ class Visualizer:
                 row=1, col=1
             )
         
-        # RSI
+      
         if 'RSI' in data.columns:
             fig.add_trace(
                 go.Scatter(x=data['Date'], y=data['RSI'], name='RSI', line=dict(color='purple')),
@@ -72,14 +72,13 @@ class Visualizer:
             fig.add_hline(y=70, line_dash="dash", line_color="red", row=1, col=2)
             fig.add_hline(y=30, line_dash="dash", line_color="green", row=1, col=2)
         
-        # Volatility
+       
         if 'Volatility' in data.columns:
             fig.add_trace(
                 go.Scatter(x=data['Date'], y=data['Volatility'], name='Volatility', line=dict(color='brown')),
                 row=2, col=1
             )
-        
-        # Daily Returns
+  
         if 'Daily_Return' in data.columns:
             fig.add_trace(
                 go.Scatter(x=data['Date'], y=data['Daily_Return'], name='Daily Returns', line=dict(color='green')),
@@ -100,7 +99,7 @@ class Visualizer:
             line=dict(color='white', width=3)
         ))
         
-        # Forecasts
+      
         colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A']
         for i, (model_name, forecast_data) in enumerate(zip(models, forecasts)):
             fig.add_trace(go.Scatter(
@@ -126,10 +125,9 @@ class Visualizer:
             subplot_titles=(f'Box Plot - {column}', f'Scatter Plot - {column}')
         )
         
-        # Box plot
-        fig.add_trace(go.Box(y=data[column], name=column), row=1, col=1)
         
-        # Scatter plot
+        fig.add_trace(go.Box(y=data[column], name=column), row=1, col=1)
+ 
         fig.add_trace(go.Scatter(
             x=data['Date'], y=data[column],
             mode='markers', name=column,
@@ -143,11 +141,11 @@ class Visualizer:
         """Plot correlation heatmap for numeric features"""
         numeric_cols = data.select_dtypes(include=[np.number]).columns
         
-        # Select only relevant columns for correlation
+ 
         relevant_cols = [col for col in numeric_cols if col in ['Open', 'High', 'Low', 'Close', 'Volume', 'MA_7', 'MA_30', 'RSI', 'Volatility', 'Daily_Return']]
         
         if len(relevant_cols) < 2:
-            # Create a simple correlation with available columns
+           
             relevant_cols = [col for col in numeric_cols if col in ['Open', 'High', 'Low', 'Close', 'Volume']]
         
         if len(relevant_cols) >= 2:
@@ -161,4 +159,5 @@ class Visualizer:
             )
             return fig
         else:
+
             return None
