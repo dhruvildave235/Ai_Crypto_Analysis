@@ -7,13 +7,13 @@ import warnings
 import os
 warnings.filterwarnings('ignore')
 
-# Import custom modules
+ 
 from utils.data_loader import CryptoDataLoader
 from utils.preprocessing import DataPreprocessor
 from utils.models import TimeSeriesModels
 from utils.visualization import Visualizer
 
-# Page configuration
+ 
 st.set_page_config(
     page_title="Cryptocurrency Time Series Analysis  ",
     page_icon="📈",
@@ -78,12 +78,12 @@ class CryptoAnalysisApp:
         self.selected_symbol = None
         
     def run(self):
-        # Header
+        
         st.markdown('<h1 class="main-header">📈 Cryptocurrency Time Series Analysis</h1>', unsafe_allow_html=True)
         st.markdown('<p style="text-align: center; font-size: 1.5rem; color: #666; margin-top: -20px;">by Dhruvil Dave</p>', unsafe_allow_html=True)
         st.markdown("---")
         
-        # Information messages
+       
         st.markdown("""
         <div class="info-box">
         💡 <strong>Welcome!</strong> This app analyzes cryptocurrency price trends using advanced time series forecasting models including ARIMA, Prophet, and LSTM neural networks.
@@ -95,11 +95,9 @@ class CryptoAnalysisApp:
         ⚠️ <strong>Note:</strong> Due to API rate limits, the app may use realistic sample data for demonstration. All analysis features work identically with both real and sample data.
         </div>
         """, unsafe_allow_html=True)
-        
-        # Sidebar
+         
         self.sidebar_controls()
-        
-        # Main content
+         
         if self.data is not None and not self.data.empty:
             self.show_data_overview()
             self.show_eda()
@@ -113,23 +111,21 @@ class CryptoAnalysisApp:
         """Sidebar controls for user input"""
         st.sidebar.title("🔧 Configuration")
         
-        # Cryptocurrency selection
+        
         st.sidebar.subheader("Cryptocurrency Selection")
         self.selected_symbol = st.sidebar.selectbox(
             "Select Cryptocurrency:",
             list(self.data_loader.crypto_symbols.keys()),
             format_func=lambda x: f"{x} - {self.data_loader.crypto_symbols[x]}"
         )
-        
-        # Time period selection
+      
         st.sidebar.subheader("Time Period")
         period = st.sidebar.selectbox(
             "Select Time Period:",
             ['1mo', '3mo', '6mo', '1y', '2y'],
             index=3
         )
-        
-        # Forecast days
+       
         forecast_days = st.sidebar.slider(
             "Forecast Days:",
             min_value=7,
@@ -137,7 +133,7 @@ class CryptoAnalysisApp:
             value=30
         )
         
-        # Load data button
+       
         if st.sidebar.button("🚀 Load Data", use_container_width=True):
             with st.spinner(f"Loading {self.selected_symbol} data..."):
                 self.data = self.data_loader.get_crypto_data(self.selected_symbol, period)
@@ -151,8 +147,7 @@ class CryptoAnalysisApp:
                         st.sidebar.error(f"❌ Error processing data: {str(e)}")
                 else:
                     st.sidebar.error("❌ Failed to load data. Please try again.")
-        
-        # Show saved datasets
+       
         st.sidebar.markdown("---")
         st.sidebar.subheader("💾 Saved Data")
         saved_datasets = self.data_loader.get_saved_datasets()
@@ -186,12 +181,12 @@ class CryptoAnalysisApp:
         st.markdown('<h2 class="section-header">📊 Data Overview</h2>', unsafe_allow_html=True)
         
         try:
-            # Check if data is valid
+            
             if self.data.empty or len(self.data) == 0:
                 st.error("No data available. Please load data first.")
                 return
             
-            # Key metrics
+            
             col1, col2, col3, col4 = st.columns(4)
             
             with col1:
@@ -232,11 +227,11 @@ class CryptoAnalysisApp:
                     value=f"{total_return:.2f}%"
                 )
             
-            # Display raw data
+           
             with st.expander("📋 View Raw Data (Last 10 Records)"):
                 st.dataframe(self.data.tail(10))
                 
-                # Download data
+               
                 csv = self.data.to_csv(index=False)
                 st.download_button(
                     label="📥 Download Full CSV",
@@ -253,13 +248,12 @@ class CryptoAnalysisApp:
         """Display Exploratory Data Analysis"""
         st.markdown('<h2 class="section-header">🔍 Exploratory Data Analysis</h2>', unsafe_allow_html=True)
         
-        try:
-            # Price trend
+        try: 
             st.subheader("Price Trend")
             fig_trend = self.visualizer.plot_price_trend(self.data, self.selected_symbol)
             st.plotly_chart(fig_trend, use_container_width=True)
             
-            # Outlier detection
+          
             st.subheader("📊 Outlier Detection using IQR Method")
             col1, col2 = st.columns([1, 2])
             
@@ -315,24 +309,24 @@ class CryptoAnalysisApp:
                 st.warning(f"Insufficient data for forecasting. Need at least 30 data points, but only {len(close_prices)} are available.")
                 return
             
-            # ARIMA Model
+          
             with st.expander("📈 ARIMA Model", expanded=True):
                 st.write("**ARIMA (AutoRegressive Integrated Moving Average) Results**")
                 arima_model, arima_forecast = self.models.arima_forecast(close_prices, self.selected_symbol)
                 
                 if arima_forecast is not None:
-                    # Create forecast dates
+                     
                     last_date = self.processed_data['Date'].iloc[-1]
                     forecast_dates = [last_date + timedelta(days=i) for i in range(1, 31)]
                     
-                    # Display forecast
+                     
                     forecast_df = pd.DataFrame({
                         'Date': forecast_dates,
                         'ARIMA_Forecast': arima_forecast
                     })
                     st.dataframe(forecast_df.style.format({'ARIMA_Forecast': '{:,.2f}'}))
                     
-                    # Plot
+                    
                     fig_arima = self.visualizer.plot_forecast_comparison(
                         self.processed_data['Date'].tolist()[-60:],
                         close_prices.tolist()[-60:],
@@ -342,8 +336,7 @@ class CryptoAnalysisApp:
                     st.plotly_chart(fig_arima, use_container_width=True)
                 else:
                     st.warning("ARIMA model could not be trained with the available data.")
-            
-            # Prophet Model
+          
             with st.expander("📊 Prophet Model", expanded=True):
                 st.write("**Facebook Prophet Model Results**")
                 prophet_model, prophet_forecast = self.models.prophet_forecast(self.processed_data, self.selected_symbol)
@@ -357,11 +350,10 @@ class CryptoAnalysisApp:
                 else:
                     st.warning("Prophet model could not be trained with the available data.")
             
-            # LSTM Model
+            
             with st.expander("🧠 LSTM Model", expanded=True):
                 st.write("**LSTM (Long Short-Term Memory) Neural Network Results**")
                 
-                # Prepare LSTM data
                 lookback = min(60, len(self.processed_data) - 10)
                 if lookback < 10:
                     st.warning(f"Insufficient data for LSTM. Need at least {10 + lookback} data points.")
@@ -370,7 +362,7 @@ class CryptoAnalysisApp:
                 X, y = self.preprocessor.prepare_lstm_data(self.processed_data, lookback)
                 
                 if len(X) > 0:
-                    # Split data
+                    
                     split_idx = int(0.8 * len(X))
                     X_train, y_train = X[:split_idx], y[:split_idx]
                     
@@ -379,12 +371,12 @@ class CryptoAnalysisApp:
                     )
                     
                     if lstm_forecast is not None:
-                        # Inverse transform forecasts
+                        
                         lstm_forecast_inverse = self.preprocessor.scalers['LSTM'].inverse_transform(
                             lstm_forecast.reshape(-1, 1)
                         ).flatten()
                         
-                        # Create forecast dates
+                        
                         last_date = self.processed_data['Date'].iloc[-1]
                         forecast_dates = [last_date + timedelta(days=i) for i in range(1, 31)]
                         
@@ -407,12 +399,12 @@ class CryptoAnalysisApp:
         
         try:
             if self.processed_data is not None and not self.processed_data.empty:
-                # Technical indicators
+               
                 st.subheader("Technical Indicators")
                 fig_technical = self.visualizer.plot_technical_indicators(self.processed_data)
                 st.plotly_chart(fig_technical, use_container_width=True)
                 
-                # Correlation heatmap
+                 
                 st.subheader("Feature Correlation Heatmap")
                 fig_corr = self.visualizer.plot_correlation_heatmap(self.processed_data)
                 if fig_corr:
@@ -456,7 +448,8 @@ class CryptoAnalysisApp:
             else:
                 st.info("No cached datasets found")
 
-# Run the app
+ 
 if __name__ == "__main__":
     app = CryptoAnalysisApp()
+
     app.run()
