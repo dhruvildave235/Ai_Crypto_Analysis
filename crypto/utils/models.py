@@ -23,7 +23,7 @@ class TimeSeriesModels:
                 st.warning(f"ARIMA requires at least 30 data points, but only {len(data)} are available.")
                 return None, None
             
-            # Try to load saved model first
+          
             model_path = os.path.join(self.models_dir, f"arima_{symbol}.pkl")
             if os.path.exists(model_path):
                 try:
@@ -38,7 +38,7 @@ class TimeSeriesModels:
             if fitted_model is None:
                 model = ARIMA(data, order=order)
                 fitted_model = model.fit()
-                # Save the model
+          
                 with open(model_path, 'wb') as f:
                     pickle.dump(fitted_model, f)
                 st.info("💾 ARIMA model saved")
@@ -53,26 +53,26 @@ class TimeSeriesModels:
     def prophet_forecast(self, data, symbol, forecast_days=30):
         """Facebook Prophet model for forecasting with model saving"""
         try:
-            # Prepare data for Prophet
+         
             df_prophet = data.reset_index()[['Date', 'Close']].rename(
                 columns={'Date': 'ds', 'Close': 'y'}
             )
             
-            # Ensure no NaN values
+     
             df_prophet = df_prophet.dropna()
             
             if len(df_prophet) < 10:
                 st.warning(f"Prophet requires at least 10 data points, but only {len(df_prophet)} are available.")
                 return None, None
             
-            # Try to load saved model first
+          
             model_path = os.path.join(self.models_dir, f"prophet_{symbol}.json")
             if os.path.exists(model_path):
                 try:
                     with open(model_path, 'r') as f:
                         model_json = json.load(f)
                     model = Prophet(**model_json)
-                    # Note: Prophet models need to be retrained, so we'll train fresh but save config
+                   
                     st.info("✅ Loaded Prophet configuration")
                 except:
                     model = None
@@ -88,7 +88,7 @@ class TimeSeriesModels:
             
             model.fit(df_prophet)
             
-            # Save model configuration
+       
             with open(model_path, 'w') as f:
                 json.dump({
                     'daily_seasonality': True,
@@ -96,7 +96,6 @@ class TimeSeriesModels:
                     'yearly_seasonality': True
                 }, f)
             
-            # Create future dataframe
             future = model.make_future_dataframe(periods=forecast_days)
             forecast = model.predict(future)
             
@@ -125,7 +124,7 @@ class TimeSeriesModels:
     def lstm_forecast(self, X_train, y_train, symbol, lookback=60, forecast_days=30):
         """LSTM model for forecasting with model saving"""
         try:
-            # Try to load saved model first
+          
             model_path = os.path.join(self.models_dir, f"lstm_{symbol}.h5")
             if os.path.exists(model_path):
                 try:
@@ -136,11 +135,11 @@ class TimeSeriesModels:
             else:
                 model = None
             
-            # Reshape data for LSTM
+         
             X_train_reshaped = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
             
             if model is None:
-                # Build and train model
+              
                 model = self.build_lstm_model((X_train.shape[1], 1))
                 
                 history = model.fit(
@@ -151,16 +150,16 @@ class TimeSeriesModels:
                     verbose=0
                 )
                 
-                # Save the model
+              
                 model.save(model_path)
                 st.info("💾 LSTM model saved")
             else:
                 history = None
             
-            # Store the model
+            
             self.models['LSTM'] = model
             
-            # Make predictions
+          
             last_sequence = X_train[-1]
             predictions = []
             current_sequence = last_sequence.copy()
@@ -170,7 +169,7 @@ class TimeSeriesModels:
                 next_pred = model.predict(current_sequence_reshaped, verbose=0)[0, 0]
                 predictions.append(next_pred)
                 
-                # Update sequence
+              
                 current_sequence = np.append(current_sequence[1:], next_pred)
             
             return model, history, np.array(predictions)
@@ -213,4 +212,5 @@ class TimeSeriesModels:
                 return True
         except:
             pass
+
         return False
